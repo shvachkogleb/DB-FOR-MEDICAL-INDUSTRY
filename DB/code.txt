@@ -1,0 +1,274 @@
+CREATE DATABASE IF NOT EXISTS HealthOne;
+USE HealthOne;
+
+
+CREATE TABLE Doctor (
+    doctor_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    specialization VARCHAR(100),
+    phone VARCHAR(20),
+    address VARCHAR(100)
+);
+
+
+CREATE TABLE Hospital (
+    hospital_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    address VARCHAR(100),
+    phone VARCHAR(20)
+);
+
+
+CREATE TABLE Doctor_Hospital (
+    doctor_id INT,
+    hospital_id INT,
+    PRIMARY KEY (doctor_id, hospital_id),
+    FOREIGN KEY (doctor_id) REFERENCES Doctor(doctor_id),
+    FOREIGN KEY (hospital_id) REFERENCES Hospital(hospital_id)
+);
+
+
+CREATE TABLE InsuranceCompany (
+    company_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
+
+CREATE TABLE InsurancePolicy (
+    policy_id INT AUTO_INCREMENT PRIMARY KEY,
+    policy_number VARCHAR(50) NOT NULL UNIQUE,
+    company_id INT,
+    FOREIGN KEY (company_id) REFERENCES InsuranceCompany(company_id)
+);
+
+
+CREATE TABLE Patient (
+    patient_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    address VARCHAR(100),
+    phone VARCHAR(20),
+    email VARCHAR(100),
+    primary_physician_id INT,
+    insurance_policy_id INT,
+    FOREIGN KEY (primary_physician_id) REFERENCES Doctor(doctor_id),
+    FOREIGN KEY (insurance_policy_id) REFERENCES InsurancePolicy(policy_id)
+);
+
+
+CREATE TABLE Drug (
+    drug_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    drug_usage TEXT,           
+    side_effects TEXT
+);
+
+
+
+CREATE TABLE Prescription (
+    prescription_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT NOT NULL,
+    doctor_id INT NOT NULL,
+    drug_id INT NOT NULL,
+    date_prescribed DATE NOT NULL,
+    dosage VARCHAR(100),
+    FOREIGN KEY (patient_id) REFERENCES Patient(patient_id),
+    FOREIGN KEY (doctor_id) REFERENCES Doctor(doctor_id),
+    FOREIGN KEY (drug_id) REFERENCES Drug(drug_id)
+);
+
+
+
+
+CREATE TABLE Visit (
+    visit_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT NOT NULL,
+    doctor_id INT NOT NULL,
+    visit_date DATE NOT NULL,
+    visit_type ENUM('new_issue','follow_up','routine') NOT NULL,
+    FOREIGN KEY (patient_id) REFERENCES Patient(patient_id),
+    FOREIGN KEY (doctor_id) REFERENCES Doctor(doctor_id)
+);
+
+
+CREATE TABLE NewIssueVisit (
+    visit_id INT PRIMARY KEY,
+    diagnosis TEXT NOT NULL,
+    FOREIGN KEY (visit_id) 
+      REFERENCES Visit(visit_id)
+      ON DELETE CASCADE
+);
+
+
+CREATE TABLE FollowUpVisit (
+    visit_id INT PRIMARY KEY,
+    follow_up_status TEXT NOT NULL,
+    FOREIGN KEY (visit_id)
+      REFERENCES Visit(visit_id)
+      ON DELETE CASCADE
+);
+
+
+CREATE TABLE RoutineVisit (
+    visit_id INT PRIMARY KEY,
+    blood_pressure VARCHAR(20) NOT NULL,
+    height DECIMAL(5,2) NOT NULL,
+    weight DECIMAL(5,2) NOT NULL,
+    FOREIGN KEY (visit_id)
+      REFERENCES Visit(visit_id)
+      ON DELETE CASCADE
+);
+
+
+INSERT INTO Doctor (first_name, last_name, specialization, phone, address) VALUES
+('John', 'Smith', 'Cardiology',  '123-456-7890', '123 Heart St.'),
+('Emily','Jones', 'Dermatology','987-654-3210', '456 Skin Ave.'),
+('Michael','Taylor','Pediatrics','112-233-4455','789 Kids Blvd.'),
+('Laura','Brown','Oncology','321-654-0987','147 Cancer Rd.'),
+('David','Wilson','Neurology','213-546-8790','258 Brain Ln.'),
+('Sarah','Davis','Orthopedics','564-738-2910','369 Bone Dr.'),
+('Robert','Miller','General Practice','678-123-4567','159 Family Ct.'),
+('Anna','Moore','Gastroenterology','890-123-4567','753 Digest St.');
+
+
+INSERT INTO Hospital (name, address, phone) VALUES
+('City Hospital',            '101 Main St.',      '555-0101'),
+('Regional Medical Center',  '202 Health Rd.',    '555-0202'),
+('Eastside Clinic',          '303 East Ave.',     '555-0303'),
+('Westside Medical Pavilion','404 West Blvd.',    '555-0404'),
+('North General Hospital',   '505 North Pkwy.',   '555-0505');
+
+
+INSERT INTO Doctor_Hospital (doctor_id, hospital_id) VALUES
+(1,1),(1,2),(2,2),(2,3),(3,1),(3,4),
+(4,2),(5,5),(6,1),(7,3),(7,4),(8,5);
+
+
+INSERT INTO InsuranceCompany (name) VALUES
+('Health Insurance Co.'),
+('Global Life'),
+('WellCare'),
+('SecureHealth'),
+('MediPlus');
+
+
+INSERT INTO InsurancePolicy (policy_number, company_id) VALUES
+('POL10001',1),('POL10002',1),
+('POL20001',2),('POL20002',2),
+('POL30001',3),('POL30002',3),
+('POL40001',4),('POL40002',4),
+('POL50001',5),('POL50002',5);
+
+
+INSERT INTO Patient (first_name, last_name, address, phone, email, primary_physician_id, insurance_policy_id) VALUES
+('Alice','Johnson','12 Apple St.','123-000-1111','alice@ex.com',1,1),
+('Bob','Davis','34 Orange Rd.','123-000-2222','bob@ex.com',2,2),
+('Charlie','Brown','56 Pear Blvd.','123-000-3333','charlie@ex.com',3,3),
+('Diana','Evans','78 Peach Ct.','123-000-4444','diana@ex.com',4,4),
+('Ethan','White','90 Mango Ln.','123-000-5555','ethan@ex.com',5,5),
+('Fiona','Green','11 Cherry Dr.','123-000-6666','fiona@ex.com',6,6),
+('George','Hall','22 Grape St.','123-000-7777','george@ex.com',7,7),
+('Hannah','Lee','33 Lemon Ave.','123-000-8888','hannah@ex.com',8,8),
+('Ian','Scott','44 Lime Rd.','123-000-9999','ian@ex.com',1,9),
+('Julia','Adams','55 Kiwi Ct.','123-000-1010','julia@ex.com',2,10),
+('Kevin','Baker','66 Plum Blvd.','123-000-1212','kevin@ex.com',3,1),
+('Laura','Clark','77 Melon Ln.','123-000-1313','laura@ex.com',4,2),
+('Mark','Evans','88 Berry St.','123-000-1414','mark@ex.com',5,3),
+('Nina','Foster','99 Olive Ave.','123-000-1515','nina@ex.com',6,4),
+('Oscar','Griffin','10 Coconut Ct.','123-000-1616','oscar@ex.com',7,5);
+
+
+INSERT INTO Drug (name, drug_usage, side_effects) VALUES
+('Aspirin','Pain relief/anti-inflammatory','Upset stomach, dizziness'),
+('Ibuprofen','Pain relief/fever reduction','Nausea, heartburn'),
+('Amoxicillin','Antibiotic','Rash, diarrhea'),
+('Lisinopril','Blood pressure','Cough, headache'),
+('Metformin','Diabetes','Nausea, bloating'),
+('Atorvastatin','Cholesterol','Muscle pain, liver issues'),
+('Omeprazole','Acid reflux','Headache, nausea'),
+('Albuterol','Asthma relief','Tremor, nervousness');
+
+
+
+
+INSERT INTO Visit (patient_id, doctor_id, visit_date, visit_type) VALUES
+(1, 1, '2025-01-05', 'new_issue'),
+(2, 2, '2025-01-06', 'new_issue'),
+(3, 3, '2025-01-07', 'new_issue'),
+(4, 4, '2025-01-08', 'new_issue'),
+(5, 5, '2025-01-09', 'new_issue'),
+(6, 6, '2025-01-10', 'new_issue'),
+(7, 7, '2025-01-11', 'new_issue'),
+(8, 8, '2025-01-12', 'new_issue'),
+(9, 1, '2025-01-13', 'new_issue'),
+(10, 2, '2025-01-14', 'new_issue');
+
+
+INSERT INTO NewIssueVisit (visit_id, diagnosis) VALUES
+(1, 'Hypertension'),
+(2, 'Eczema'),
+(3, 'Common Cold'),
+(4, 'Breast Cancer'),
+(5, 'Migraine'),
+(6, 'Fracture'),
+(7, 'Diabetes Type 2'),
+(8, 'Asthma'),
+(9, 'Bronchitis'),
+(10, 'Acid Reflux');
+
+
+INSERT INTO Visit (patient_id, doctor_id, visit_date, visit_type) VALUES
+(1, 1, '2025-02-05', 'follow_up'),
+(2, 2, '2025-02-06', 'follow_up'),
+(3, 3, '2025-02-07', 'follow_up'),
+(4, 4, '2025-02-08', 'follow_up'),
+(5, 5, '2025-02-09', 'follow_up'),
+(6, 6, '2025-02-10', 'follow_up'),
+(7, 7, '2025-02-11', 'follow_up'),
+(8, 8, '2025-02-12', 'follow_up'),
+(9, 1, '2025-02-13', 'follow_up'),
+(10, 2, '2025-02-14', 'follow_up');
+
+
+INSERT INTO FollowUpVisit (visit_id, follow_up_status) VALUES
+(11, 'Blood pressure improved'),
+(12, 'Skin cleared'),
+(13, 'Cold resolved'),
+(14, 'Tumor shrinking'),
+(15, 'Less frequent migraines'),
+(16, 'Bone healing well'),
+(17, 'HbA1c down'),
+(18, 'Asthma controlled'),
+(19, 'Lung function better'),
+(20, 'Heartburn reduced');
+
+
+INSERT INTO Visit (patient_id, doctor_id, visit_date, visit_type) VALUES
+(1, 1, '2025-03-05', 'routine'),
+(2, 2, '2025-03-06', 'routine'),
+(3, 3, '2025-03-07', 'routine'),
+(4, 4, '2025-03-08', 'routine'),
+(5, 5, '2025-03-09', 'routine'),
+(6, 6, '2025-03-10', 'routine'),
+(7, 7, '2025-03-11', 'routine'),
+(8, 8, '2025-03-12', 'routine'),
+(9, 1, '2025-03-13', 'routine'),
+(10, 2, '2025-03-14', 'routine');
+
+
+INSERT INTO RoutineVisit (visit_id, blood_pressure, height, weight) VALUES
+(21, '120/80', 1.70, 70.0),
+(22, '130/85', 1.65, 60.0),
+(23, '110/70', 1.80, 80.0),
+(24, '140/90', 1.75, 75.0),
+(25, '125/82', 1.60, 65.0),
+(26, '135/88', 1.68, 68.0),
+(27, '118/78', 1.72, 72.0),
+(28, '128/84', 1.69, 66.0),
+(29, '115/75', 1.77, 77.0),
+(30, '132/86', 1.73, 73.0);
+
+
+
+
